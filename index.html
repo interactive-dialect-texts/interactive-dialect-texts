@@ -7,482 +7,1241 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=IM+Fell+English:ital@0;1&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-    
-    body { 
-      margin: 0; 
-      padding: 0; 
-      font-family: 'Philosopher', 'Inter', system-ui, sans-serif;
+    :root {
+      --burgundy-deep:   #3A0D14;
+      --burgundy-main:   #5C1520;
+      --burgundy-mid:    #7A2030;
+      --burgundy-light:  #A33545;
+      --gold:            #C9A84C;
+      --gold-light:      #E8C97A;
+      --cream:           #F5EFE0;
+      --cream-dark:      #E0D5C0;
+      --gray-mid:        #B8A898;
+      --white:           #FFFFFF;
+      --charcoal:        #1A1410;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Jost', system-ui, sans-serif;
+      background: var(--burgundy-deep);
+      color: var(--cream);
       -webkit-font-smoothing: antialiased;
     }
-    
-    h1, h2, h3, .font-display {
-      font-family: 'Philosopher', sans-serif;
-      font-weight: 700;
+
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
     }
-    
-    .hero-section {
-      position: relative;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
-      overflow: hidden;
-      min-height: 550px;
+
+    /* ─── NOISE TEXTURE overlay ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.04;
+    }
+
+    /* ─── NAVBAR ─── */
+    .navbar {
+      background: linear-gradient(to bottom, var(--burgundy-deep) 0%, rgba(28,6,9,0.96) 100%);
+      border-bottom: 1px solid rgba(201,168,76,0.25);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 72px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
     }
-    
-    .floating-letters {
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .navbar-logo {
+      width: 44px;
+      height: 44px;
+    }
+
+    .navbar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--cream);
+      letter-spacing: 0.02em;
+      line-height: 1.3;
+      max-width: 340px;
+    }
+
+    .nav-btn {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.55rem 1.6rem;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+      z-index: 0;
+    }
+
+    .nav-btn:hover::before { transform: scaleX(1); }
+    .nav-btn:hover { color: var(--burgundy-deep); }
+    .nav-btn span { position: relative; z-index: 1; }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(92,21,32,0.6) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 100%, rgba(139,42,53,0.3) 0%, transparent 60%),
+        var(--burgundy-deep);
+      padding: 6rem 2rem 4rem;
+    }
+
+    /* Diagonal ornament lines */
+    .hero-lines {
       position: absolute;
       inset: 0;
       pointer-events: none;
       overflow: hidden;
     }
-    
-    .letter {
-      position: absolute;
-      font-weight: 800;
-      color: rgba(127, 29, 29, 0.4);
-      animation: fade-float 10s infinite ease-in-out;
-      text-shadow: 0 4px 20px rgba(127, 29, 29, 0.5);
-      font-size: 5rem;
-    }
-    
-    @keyframes fade-float {
-      0%, 100% { opacity: 0.4; transform: translateY(0) rotate(-5deg); }
-      50% { opacity: 0.6; transform: translateY(-30px) rotate(5deg); }
-    }
-    
-    .stats-card {
-      background: white;
-      border-radius: 1.5rem;
-      padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 3px solid transparent;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .stats-card::before {
+
+    .hero-lines::before,
+    .hero-lines::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #7f1d1d 0%, #991b1b 100%);
-      transform: scaleX(0);
-      transition: transform 0.4s ease;
+      width: 1px;
+      height: 200%;
+      background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.2), transparent);
+      top: -50%;
     }
-    
-    .stats-card:hover::before {
-      transform: scaleX(1);
-    }
-    
-    .stats-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-      border-color: #991b1b;
-    }
-    
-    .stats-number {
-      font-size: 3.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      transition: all 0.3s ease;
-    }
-    
-    .stats-card:hover .stats-number {
-      transform: scale(1.1);
-    }
-    
-    .nav-button {
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .nav-button::before {
-      content: '';
+
+    .hero-lines::before { left: 20%; transform: rotate(-8deg); }
+    .hero-lines::after  { right: 20%; transform: rotate(8deg); }
+
+    /* Floating Cyrillic letters */
+    .float-letters {
       position: absolute;
-      top: 50%;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .float-letter {
+      position: absolute;
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 700;
+      color: rgba(201,168,76,0.06);
+      animation: floatLetter 12s infinite ease-in-out;
+      user-select: none;
+    }
+
+    @keyframes floatLetter {
+      0%,100% { transform: translateY(0) rotate(var(--rot,0deg)); opacity: 0.06; }
+      50%      { transform: translateY(-24px) rotate(calc(var(--rot,0deg) + 4deg)); opacity: 0.1; }
+    }
+
+    /* Central ornament sign */
+    .hero-sign {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 2.5rem;
+      animation: signGlow 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes signGlow {
+      0%   { filter: drop-shadow(0 0 8px rgba(201,168,76,0.3)); }
+      100% { filter: drop-shadow(0 0 20px rgba(201,168,76,0.6)); }
+    }
+
+    .hero-eyebrow {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      flex: 1;
+      max-width: 60px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+
+    .hero-h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 6vw, 5.5rem);
+      font-weight: 600;
+      color: var(--cream);
+      line-height: 1.08;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-h1 em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero-sub {
+      font-family: 'Jost', sans-serif;
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--cream-dark);
+      text-align: center;
+      max-width: 620px;
+      line-height: 1.7;
+      margin-bottom: 3.5rem;
+      opacity: 0.85;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: rgba(201,168,76,0.2);
+      border: 1px solid rgba(201,168,76,0.2);
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .stat-cell {
+      background: rgba(28,6,9,0.7);
+      padding: 1.8rem 1.2rem;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      transition: background 0.3s;
+    }
+
+    .stat-cell:hover { background: rgba(92,21,32,0.5); }
+
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      margin-top: 0.5rem;
+      display: block;
+    }
+
+    /* Scroll indicator */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2.5rem;
       left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      transform: translate(-50%, -50%);
-      transition: width 0.5s, height 0.5s;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0.5;
+      animation: bounce 2s infinite;
     }
-    
-    .nav-button:hover::before {
-      width: 300px;
-      height: 300px;
+
+    .scroll-indicator span {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
     }
-    
-    .nav-button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(127, 29, 29, 0.4);
+
+    .scroll-indicator svg { color: var(--gold); }
+
+    @keyframes bounce {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(6px); }
     }
-    
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-30px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    /* ─── SECTION WRAPPER ─── */
+    .section {
+      position: relative;
+      padding: 6rem 2rem;
     }
-    
-    .animate-slide-down {
-      animation: slideDown 0.8s ease-out;
+
+    .section-dark {
+      background: var(--burgundy-deep);
     }
-    
+
+    .section-mid {
+      background: var(--burgundy-main);
+    }
+
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Section heading */
+    .sec-heading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .sec-tag {
+      font-size: 0.68rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .sec-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 600;
+      color: var(--cream);
+      margin: 0 0 1rem;
+    }
+
+    .sec-rule {
+      width: 80px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.6;
+      margin: 0 auto;
+    }
+
+    /* ─── ABOUT CENTRE CARDS ─── */
+    .about-card {
+      background: linear-gradient(135deg, rgba(92,21,32,0.35) 0%, rgba(28,6,9,0.5) 100%);
+      border: 1px solid rgba(201,168,76,0.18);
+      padding: 2.5rem;
+      position: relative;
+      transition: border-color 0.4s, transform 0.4s;
+    }
+
+    .about-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--gold);
+      opacity: 0.6;
+      transition: opacity 0.4s;
+    }
+
+    .about-card:hover {
+      border-color: rgba(201,168,76,0.4);
+      transform: translateX(4px);
+    }
+
+    .about-card:hover::before { opacity: 1; }
+
+    .about-card p {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: var(--cream-dark);
+    }
+
+    .about-card strong {
+      color: var(--gold-light);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+    }
+
+    /* ─── PLATFORM FEATURES GRID ─── */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: rgba(201,168,76,0.12);
+      border: 1px solid rgba(201,168,76,0.12);
+    }
+
+    @media (max-width: 768px) {
+      .feat-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2,1fr); }
+    }
+
+    .feat-cell {
+      background: var(--burgundy-deep);
+      padding: 2.5rem;
+      transition: background 0.3s;
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .feat-cell:hover { background: rgba(92,21,32,0.3); }
+
+    .feat-icon {
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(201,168,76,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--gold);
+    }
+
+    .feat-text h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin: 0 0 0.6rem;
+    }
+
+    .feat-text p {
+      font-size: 0.92rem;
+      line-height: 1.75;
+      color: var(--gray-mid);
+    }
+
+    /* ─── QUOTE BLOCK ─── */
+    .quote-section {
+      background: var(--burgundy-main);
+      border-top: 1px solid rgba(201,168,76,0.15);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+      padding: 5rem 2rem;
+    }
+
+    .quote-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .quote-inner { flex-direction: column-reverse; gap: 2rem; text-align: center; }
+    }
+
+    .quote-photo-wrap {
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .quote-photo {
+      width: 160px;
+      height: 160px;
+      object-fit: cover;
+      object-position: top;
+      filter: sepia(0.3) contrast(1.1);
+      display: block;
+    }
+
+    .quote-photo-border {
+      position: absolute;
+      inset: -8px;
+      border: 1px solid rgba(201,168,76,0.35);
+      pointer-events: none;
+    }
+
+    .quote-photo-corner {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-color: var(--gold);
+      border-style: solid;
+      opacity: 0.8;
+    }
+
+    .quote-photo-corner.tl { top: -10px; left: -10px; border-width: 2px 0 0 2px; }
+    .quote-photo-corner.tr { top: -10px; right: -10px; border-width: 2px 2px 0 0; }
+    .quote-photo-corner.bl { bottom: -10px; left: -10px; border-width: 0 0 2px 2px; }
+    .quote-photo-corner.br { bottom: -10px; right: -10px; border-width: 0 2px 2px 0; }
+
+    .quote-content {
+      flex: 1;
+    }
+
+    .quote-mark {
+      font-family: 'IM Fell English', serif;
+      font-size: 6rem;
+      line-height: 0.6;
+      color: var(--gold);
+      opacity: 0.4;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .quote-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--cream);
+      line-height: 1.75;
+      margin: 0 0 1.5rem;
+    }
+
+    .quote-author {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .quote-author::before {
+      content: '';
+      width: 32px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.6;
+    }
+
+    /* ─── USER INFO SECTION ─── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) { .info-grid { grid-template-columns: 1fr; } }
+
+    .info-card {
+      border: 1px solid rgba(201,168,76,0.18);
+      background: rgba(92,21,32,0.2);
+      padding: 2.5rem;
+    }
+
+    .info-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      color: var(--cream);
+      margin: 0 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .info-num {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Jost', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .info-step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .info-step p {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: var(--cream-dark);
+      padding-top: 0.4rem;
+    }
+
+    .info-bullet {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: flex-start;
+    }
+
+    .info-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      flex-shrink: 0;
+      margin-top: 0.55rem;
+    }
+
+    .info-bullet p {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: var(--cream-dark);
+    }
+
+    .researchers-block {
+      border: 1px solid rgba(201,168,76,0.2);
+      background: rgba(28,6,9,0.6);
+      padding: 3rem;
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 768px) { .researchers-block { flex-direction: column; gap: 1.5rem; } }
+
+    .researchers-icon {
+      width: 64px;
+      height: 64px;
+      border: 1px solid rgba(201,168,76,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .researchers-block h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      color: var(--cream);
+      margin: 0 0 1rem;
+    }
+
+    .researchers-block p {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: var(--cream-dark);
+      opacity: 0.85;
+    }
+
+    .important-note {
+      border-left: 2px solid var(--gold);
+      padding: 1rem 1.5rem;
+      margin-top: 1.5rem;
+      background: rgba(201,168,76,0.06);
+    }
+
+    .important-note p {
+      font-size: 0.9rem;
+      color: var(--cream-dark);
+    }
+
+    .important-note strong { color: var(--gold-light); }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      background: var(--burgundy-deep);
+      border-top: 1px solid rgba(201,168,76,0.2);
+      padding: 3.5rem 2rem;
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2.5rem;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-logo {
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(201,168,76,0.3);
+      padding: 4px;
+    }
+
+    .footer-contact p {
+      font-size: 0.85rem;
+      color: var(--gray-mid);
+      margin: 0.3rem 0;
+    }
+
+    .footer-contact a { color: var(--gold); text-decoration: none; transition: opacity 0.2s; }
+    .footer-contact a:hover { opacity: 0.7; }
+
+    .footer-info { text-align: right; }
+
+    .footer-info p {
+      font-size: 0.82rem;
+      color: var(--gray-mid);
+      margin: 0.3rem 0;
+    }
+
+    .footer-copy {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
+      color: var(--cream-dark);
+      margin-bottom: 0.5rem !important;
+    }
+
+    .footer-gold { color: var(--gold) !important; }
+
+    /* ─── BOTTOM ORNAMENT ─── */
+    .bottom-orn {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      opacity: 0.3;
+      margin-bottom: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .bottom-orn::before {
+      content: '';
+      flex: 1;
+      max-width: 120px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    /* ─── MAP VIEW ─── */
+    .glass-effect {
+      background: rgba(28,6,9,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+    }
+
+    .map-search-input {
+      background: rgba(92,21,32,0.4);
+      border: 1px solid rgba(201,168,76,0.25);
+      color: var(--cream);
+      padding: 0.7rem 1.2rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.3s;
+    }
+
+    .map-search-input::placeholder { color: rgba(224,213,192,0.4); }
+    .map-search-input:focus { border-color: rgba(201,168,76,0.6); }
+
+    .map-select {
+      background: rgba(92,21,32,0.4);
+      border: 1px solid rgba(201,168,76,0.25);
+      color: var(--cream);
+      padding: 0.7rem 1rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.3s;
+      cursor: pointer;
+    }
+
+    .map-select:focus { border-color: rgba(201,168,76,0.6); }
+    .map-select option { background: var(--burgundy-main); color: var(--cream); }
+
+    .map-btn {
+      background: var(--burgundy-mid);
+      border: 1px solid rgba(201,168,76,0.35);
+      color: var(--gold);
+      padding: 0.7rem 1.4rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+
+    .map-btn:hover { background: var(--burgundy-light); }
+
     .spinner { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes pulse-border { 
-      0%, 100% { border-color: #991b1b; }
-      50% { border-color: #7f1d1d; }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-5px); }
-    }
-    
-    #map { height: 100%; width: 100%; }
-    .carousel-dots { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
-    .carousel-dot { 
-      width: 8px; 
-      height: 8px; 
-      border-radius: 50%; 
-      background: #d1d5db; 
-      cursor: pointer; 
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .carousel-dot:hover { background: #9ca3af; }
-    .carousel-dot.active { 
-      background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%); 
-      width: 24px; 
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(127, 29, 29, 0.3);
-    }
-    
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+
     .animate-fade-in { animation: fadeIn 0.5s ease-out; }
     .animate-slide-in { animation: slideIn 0.4s ease-out; }
-    
-    .glass-effect {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+    .animate-slide-down { animation: slideDown 0.8s ease-out; }
+
+    @keyframes pulse-border {
+      0%,100% { border-color: var(--burgundy-light); }
+      50%      { border-color: var(--gold); }
     }
-    
-    .search-input:focus {
-      box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.1);
+
+    #map { height: 100%; width: 100%; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--burgundy-deep);
+      border-left: 1px solid rgba(201,168,76,0.15);
+      overflow-y: auto;
+      flex-shrink: 0;
     }
-    
-    .card-hover {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: var(--burgundy-deep); }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); }
+
+    .result-item {
+      padding: 1rem 1.2rem;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      cursor: pointer;
+      transition: background 0.2s;
     }
-    
-    .card-hover:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+
+    .result-item:hover { background: rgba(92,21,32,0.4); }
+
+    .result-item.active {
+      background: rgba(92,21,32,0.6);
+      border-left: 3px solid var(--gold);
     }
-    
-    .selected-card {
-      animation: pulse-border 2s ease-in-out infinite;
+
+    .result-item h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--cream);
+      margin: 0 0 0.2rem;
     }
-    
-    .detail-info-card {
-      transition: all 0.3s ease;
+
+    .result-item p { font-size: 0.8rem; color: var(--gray-mid); margin: 0; }
+
+    /* Detail panel */
+    .detail-panel {
+      background: var(--burgundy-deep);
+      border-left: 1px solid rgba(201,168,76,0.15);
+      flex: 1;
+      min-width: 420px;
+      max-width: 680px;
+      overflow-y: auto;
     }
-    
-    .detail-info-card:hover {
-      box-shadow: 0 4px 12px rgba(127, 29, 29, 0.15);
-      transform: translateY(-2px);
+
+    .detail-header {
+      background: var(--burgundy-main);
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    
-    .audio-button {
-      position: relative;
-      overflow: hidden;
+
+    .detail-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      color: var(--cream);
+      margin: 0;
     }
-    
-    .audio-button::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
+
+    .detail-close {
+      background: none;
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
     }
-    
-    .audio-button:hover::before {
-      width: 300px;
-      height: 300px;
+
+    .detail-close:hover { background: rgba(201,168,76,0.15); }
+
+    .detail-body { padding: 1.5rem; }
+
+    .detail-card {
+      background: rgba(92,21,32,0.25);
+      border: 1px solid rgba(201,168,76,0.15);
+      padding: 1rem 1.2rem;
+      margin-bottom: 1rem;
+      transition: transform 0.2s;
     }
-    
-    .stat-badge {
-      animation: float 3s ease-in-out infinite;
+
+    .detail-card:hover { transform: translateX(2px); }
+
+    .detail-card-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
     }
-    
+
+    .detail-card-value {
+      font-size: 0.92rem;
+      color: var(--cream-dark);
+      line-height: 1.6;
+    }
+
     .text-scrollable {
-      max-height: 300px;
+      max-height: 200px;
       overflow-y: auto;
       scrollbar-width: thin;
-      scrollbar-color: #cbd5e1 #f1f5f9;
-    }
-    
-    .text-scrollable::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .text-scrollable::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 4px;
-    }
-    
-    .text-scrollable::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    
-    .text-scrollable::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-    
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { 
-      background: #cbd5e1; 
-      border-radius: 4px; 
-    }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-    .map-container-small {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      scrollbar-color: rgba(201,168,76,0.3) transparent;
     }
 
-    .detail-panel-expanded {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .audio-btn {
+      width: 100%;
+      margin-top: 1.5rem;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 0.75rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
     }
+
+    .audio-btn:hover { background: var(--gold); color: var(--burgundy-deep); }
+
+    .carousel-nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+
+    .carousel-btn {
+      background: none;
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .carousel-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .carousel-btn:not(:disabled):hover { background: rgba(201,168,76,0.2); }
+
+    .carousel-title {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      flex: 1;
+    }
+
+    .carousel-dots {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .carousel-dot {
+      width: 6px;
+      height: 6px;
+      background: rgba(201,168,76,0.3);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .carousel-dot.active {
+      background: var(--gold);
+      width: 20px;
+    }
+
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--cream-dark);
+      margin-top: 0.5rem;
+    }
+
+    .stat-badge-num {
+      background: var(--burgundy-mid);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .error-banner {
+      background: rgba(139,42,53,0.3);
+      border-left: 3px solid var(--burgundy-light);
+      color: var(--cream-dark);
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    mark {
+      background: rgba(201,168,76,0.3);
+      color: var(--gold-light);
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+
+    /* map container */
+    .map-container { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); }
   </style>
 </head>
-<body class="bg-gray-50">
+<body>
   <div id="root"></div>
-  
+
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  
+
   <script type="text/babel">
     const { useState, useEffect, useMemo, useRef } = React;
-    
+
     const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyXB1rwbjiCQXg-ANDVXHFD26Y4lya9m0qZz9qQRPphBCOe7PQxx6Cort7HIR5AaP8S/exec';
-    
+
     const cleanText = (txt) => {
       if (!txt) return '';
-      return txt.toLowerCase().trim().replace(/[^\wа-яіїєґ]/gi, ' ').replace(/\s+/g, ' ');
+      return txt.toLowerCase().trim().replace(/[^\wа-яіїєґ]/gi,' ').replace(/\s+/g,' ');
     };
-    
+
     const matchWord = (content, term) => {
       if (!content || !term) return false;
       const norm1 = cleanText(content);
       const norm2 = cleanText(term);
-      const tokens = norm1.split(' ');
-      return tokens.some(t => t === norm2 || t.includes(norm2));
+      return norm1.split(' ').some(t => t === norm2 || t.includes(norm2));
     };
-    
+
+    /* ──────────────────────────────────────────────
+       ORNAMENTAL SIGN SVG (redrawn from Image 2)
+    ────────────────────────────────────────────── */
+    function OrnamentalSign({ className }) {
+      return (
+        <svg className={className} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stopColor="#E8C97A"/>
+              <stop offset="50%"  stopColor="#C9A84C"/>
+              <stop offset="100%" stopColor="#A07828"/>
+            </linearGradient>
+          </defs>
+          {/* Outer 8-pointed star frame */}
+          <path
+            d="M100 10 L118 52 L160 34 L142 76 L184 94 L142 112 L160 154 L118 136 L100 178 L82 136 L40 154 L58 112 L16 94 L58 76 L40 34 L82 52 Z"
+            stroke="url(#goldGrad)" strokeWidth="2.5" fill="rgba(61,12,17,0.6)"
+          />
+          {/* Inner 8-pointed star */}
+          <path
+            d="M100 32 L112 62 L142 50 L130 80 L160 92 L130 104 L142 134 L112 122 L100 152 L88 122 L58 134 L70 104 L40 92 L70 80 L58 50 L88 62 Z"
+            stroke="url(#goldGrad)" strokeWidth="2" fill="rgba(61,12,17,0.4)"
+          />
+          {/* Connecting diagonal lines (octagram detail) */}
+          <line x1="74" y1="74" x2="126" y2="126" stroke="url(#goldGrad)" strokeWidth="1.5" opacity="0.6"/>
+          <line x1="126" y1="74" x2="74" y2="126" stroke="url(#goldGrad)" strokeWidth="1.5" opacity="0.6"/>
+          <line x1="100" y1="62" x2="100" y2="138" stroke="url(#goldGrad)" strokeWidth="1.5" opacity="0.6"/>
+          <line x1="62" y1="100" x2="138" y2="100" stroke="url(#goldGrad)" strokeWidth="1.5" opacity="0.6"/>
+          {/* Center square */}
+          <rect x="80" y="80" width="40" height="40" stroke="url(#goldGrad)" strokeWidth="2" fill="rgba(201,168,76,0.08)" transform="rotate(45 100 100)"/>
+          {/* Center dot */}
+          <circle cx="100" cy="100" r="6" fill="url(#goldGrad)" opacity="0.85"/>
+          {/* Outer ring */}
+          <circle cx="100" cy="100" r="90" stroke="url(#goldGrad)" strokeWidth="1" opacity="0.3" strokeDasharray="4 6"/>
+        </svg>
+      );
+    }
+
+    /* ──────────────────────────────────────────────
+       LOGO (use external or fallback to sign)
+    ────────────────────────────────────────────── */
+    function Logo({ size = 44 }) {
+      const [failed, setFailed] = useState(false);
+      if (failed) return <OrnamentalSign className="navbar-logo" style={{width: size, height: size}} />;
+      return (
+        <img
+          src="https://drive.google.com/uc?export=view&id=1PlAk2F6M3wmR1WSMai7gamheOzxzfzWG"
+          alt="Логотип"
+          style={{width: size, height: size, objectFit: 'contain'}}
+          onError={() => setFailed(true)}
+        />
+      );
+    }
+
+    /* ──────────────────────────────────────────────
+       MAIN APP
+    ────────────────────────────────────────────── */
     function App() {
-      const [view, setView] = useState('home');
-      const [data, setData] = useState([]);
-      const [isLoading, setIsLoading] = useState(false);
-      const [err, setErr] = useState(null);
-      const [query, setQuery] = useState('');
-      const [active, setActive] = useState(null);
-      const [slideIdx, setSlideIdx] = useState(0);
-      const [filterReg, setFilterReg] = useState('');
+      const [view, setView]         = useState('home');
+      const [data, setData]         = useState([]);
+      const [isLoading, setLoading] = useState(false);
+      const [err, setErr]           = useState(null);
+      const [query, setQuery]       = useState('');
+      const [active, setActive]     = useState(null);
+      const [slideIdx, setSlide]    = useState(0);
+      const [filterReg, setFilterReg]   = useState('');
       const [filterDist, setFilterDist] = useState('');
-      const mapEl = useRef(null);
+      const mapEl  = useRef(null);
       const mapObj = useRef(null);
       const markers = useRef([]);
-      
-      useEffect(() => {
-        if (data.length === 0 && !isLoading) {
-          fetchData();
-        }
-      }, []);
-      
-      useEffect(() => {
-        if (view === 'map' && data.length === 0 && !isLoading) {
-          fetchData();
-        }
-      }, [view]);
-      
+
+      useEffect(() => { if (data.length === 0 && !isLoading) fetchData(); }, []);
+      useEffect(() => { if (view === 'map' && data.length === 0 && !isLoading) fetchData(); }, [view]);
+
       useEffect(() => {
         if (view === 'map' && !isLoading && mapEl.current && !mapObj.current) {
           mapObj.current = L.map(mapEl.current).setView([48.5, 31.5], 6);
-          
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 18
+            attribution: '© OpenStreetMap contributors', maxZoom: 18
           }).addTo(mapObj.current);
         }
       }, [view, isLoading]);
 
       useEffect(() => {
-        if (mapObj.current) {
-          setTimeout(() => {
-            mapObj.current.invalidateSize();
-          }, 450);
-        }
+        if (mapObj.current) setTimeout(() => mapObj.current.invalidateSize(), 450);
       }, [active]);
-      
+
       useEffect(() => {
-        if (mapObj.current && !isLoading && view === 'map') {
-          markers.current.forEach(m => m.remove());
-          markers.current = [];
-          
-          results.forEach(item => {
-            const selected = active?.id === item.id;
-            
-            const m = L.circleMarker([item.lat, item.lng], {
-              radius: selected ? 10 : 6,
-              fillColor: selected ? '#7f1d1d' : '#991b1b',
-              color: '#fff',
-              weight: 2,
-              opacity: 1,
-              fillOpacity: selected ? 1 : 0.9
-            }).addTo(mapObj.current);
-            
-            m.on('click', () => {
-              setActive(item);
-              setSlideIdx(0);
-            });
-            
-            if (selected) {
-              m.bindPopup(`<b>${item.settlement}</b>`).openPopup();
-            }
-            
-            markers.current.push(m);
-          });
-          
-          if (results.length > 0) {
-            const bnds = L.latLngBounds(results.map(r => [r.lat, r.lng]));
-            mapObj.current.fitBounds(bnds, { padding: [50, 50] });
-          }
+        if (!mapObj.current || isLoading || view !== 'map') return;
+        markers.current.forEach(m => m.remove());
+        markers.current = [];
+        results.forEach(item => {
+          const sel = active?.id === item.id;
+          const m = L.circleMarker([item.lat, item.lng], {
+            radius: sel ? 10 : 6,
+            fillColor: sel ? '#C9A84C' : '#8B2A35',
+            color: sel ? '#E8C97A' : '#1C0609',
+            weight: 2, opacity: 1, fillOpacity: sel ? 1 : 0.85
+          }).addTo(mapObj.current);
+          m.on('click', () => { setActive(item); setSlide(0); });
+          if (sel) m.bindPopup(`<b>${item.settlement}</b>`).openPopup();
+          markers.current.push(m);
+        });
+        if (results.length > 0) {
+          const bnds = L.latLngBounds(results.map(r => [r.lat, r.lng]));
+          mapObj.current.fitBounds(bnds, { padding: [50, 50] });
         }
       }, [results, active, isLoading, view]);
-      
+
       const results = useMemo(() => {
         let res = data;
-        
-        if (filterReg) {
-          res = res.filter(d => d.region === filterReg);
-        }
-        
-        if (filterDist) {
-          res = res.filter(d => d.district === filterDist);
-        }
-        
+        if (filterReg)  res = res.filter(d => d.region === filterReg);
+        if (filterDist) res = res.filter(d => d.district === filterDist);
         if (query.trim()) {
           const q = query.toLowerCase().trim();
-          
-          res = res.filter(d => {
-            if (matchWord(d.transcription, q)) {
-              return true;
-            }
-            
-            if (matchWord(d.settlement, q)) {
-              return true;
-            }
-            
-            if (matchWord(d.literary, q)) {
-              return true;
-            }
-            
-            return false;
-          });
+          res = res.filter(d =>
+            matchWord(d.transcription, q) || matchWord(d.settlement, q) || matchWord(d.literary, q)
+          );
         }
-        
         return res;
       }, [query, data, filterReg, filterDist]);
-      
+
       const regions = useMemo(() => {
-        const regSet = new Set();
-        data.forEach(d => {
-          if (d.region) {
-            const cleanRegion = d.region.trim().replace(/\s+/g, ' ');
-            regSet.add(cleanRegion);
-          }
-        });
-        return Array.from(regSet).sort();
+        const s = new Set();
+        data.forEach(d => d.region && s.add(d.region.trim().replace(/\s+/g,' ')));
+        return Array.from(s).sort();
       }, [data]);
-      
+
       const districts = useMemo(() => {
         if (!filterReg) return [];
-        const distSet = new Set();
+        const s = new Set();
         data.forEach(d => {
-          if (d.district && d.region) {
-            const cleanRegion = d.region.trim().replace(/\s+/g, ' ');
-            const cleanDistrict = d.district.trim().replace(/\s+/g, ' ');
-            if (cleanRegion === filterReg) {
-              distSet.add(cleanDistrict);
-            }
-          }
+          if (d.district && d.region?.trim().replace(/\s+/g,' ') === filterReg)
+            s.add(d.district.trim().replace(/\s+/g,' '));
         });
-        return Array.from(distSet).sort();
+        return Array.from(s).sort();
       }, [data, filterReg]);
-      
+
       const highlight = (txt, search) => {
         if (!txt || !search.trim()) return txt;
-        
         const lower = search.toLowerCase().trim();
-        const parts = txt.split(/(\s+)/);
-        
-        return parts.map((p, idx) => {
-          const pClean = cleanText(p);
-          const sClean = cleanText(lower);
-          
-          if (pClean && pClean.includes(sClean)) {
-            return <mark key={idx} className="bg-yellow-300 px-1 rounded">{p}</mark>;
-          }
-          return p;
+        return txt.split(/(\s+)/).map((p, i) => {
+          const c = cleanText(p), s = cleanText(lower);
+          return c && c.includes(s)
+            ? <mark key={i}>{p}</mark>
+            : p;
         });
       };
-      
+
       const fetchData = async () => {
-        setIsLoading(true);
-        setErr(null);
-        
+        setLoading(true); setErr(null);
         try {
           const resp = await fetch(API_ENDPOINT);
           if (!resp.ok) throw new Error('Помилка завантаження');
-          
           const json = await resp.json();
-          
           const processed = json.map((item, idx) => {
-            let latitude = null, longitude = null;
+            let lat = null, lng = null;
             const coords = (item['Широта / Довгота'] || '').toString();
             if (coords) {
-              const split = coords.split(/[,;\/\s]+/);
-              if (split.length >= 2) {
-                latitude = parseFloat(split[0]);
-                longitude = parseFloat(split[1]);
-              }
+              const sp = coords.split(/[,;\/\s]+/);
+              if (sp.length >= 2) { lat = parseFloat(sp[0]); lng = parseFloat(sp[1]); }
             }
-            
             return {
-              id: item['ID'] || 'rec' + idx,
+              id: item['ID'] || 'rec'+idx,
               settlement: (item['Населений пункт'] || '').trim(),
-              region: (item['Область'] || '').trim().replace(/\s+/g, ' '),
-              district: (item['Район'] || '').trim().replace(/\s+/g, ' '),
-              lat: latitude, 
-              lng: longitude,
+              region: (item['Область'] || '').trim().replace(/\s+/g,' '),
+              district: (item['Район'] || '').trim().replace(/\s+/g,' '),
+              lat, lng,
               dialect: (item['Діалект'] || item['ДІАЛЕКТ'] || '').trim(),
               subdialect: (item['Наріччя'] || item['НАРІЧЧЯ'] || '').trim(),
               transcription: (item['Транскрипція'] || item['ТРАНСКРИПЦІЯ'] || '').trim(),
@@ -497,143 +1256,102 @@
               recordDate: (item['Дата запису'] || item['ДАТА ЗАПИСУ'] || '').toString().trim()
             };
           }).filter(d => d.lat && d.lng && !isNaN(d.lat) && !isNaN(d.lng));
-          
           setData(processed);
-        } catch (error) {
-          setErr(error.message);
+        } catch(e) {
+          setErr(e.message);
         } finally {
-          setIsLoading(false);
+          setLoading(false);
         }
       };
-      
+
       const slides = useMemo(() => {
         if (!active) return [];
-        
         const arr = [];
-        
         arr.push({
           title: 'Основна інформація',
           content: (
-            <div className="space-y-4">
-              <div className="border-b pb-3">
-                <h3 className="font-bold text-xl text-gray-900 font-display">{active.settlement}</h3>
-                <p className="text-sm text-gray-600">{active.region}</p>
-                {active.district && (
-                  <p className="text-sm text-gray-600">{active.district}</p>
-                )}
+            <div>
+              <div style={{borderBottom:'1px solid rgba(201,168,76,0.15)',paddingBottom:'1rem',marginBottom:'1rem'}}>
+                <h3 style={{fontFamily:'Cormorant Garamond,serif',fontSize:'1.4rem',color:'var(--cream)',margin:'0 0 0.3rem'}}>{active.settlement}</h3>
+                <p style={{fontSize:'0.85rem',color:'var(--gray-mid)',margin:0}}>{active.region}</p>
+                {active.district && <p style={{fontSize:'0.85rem',color:'var(--gray-mid)',margin:0}}>{active.district}</p>}
               </div>
-              
               {active.dialect && (
-                <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-200 detail-info-card">
-                  <p className="text-xs font-semibold text-gray-700 mb-1">ДІАЛЕКТ</p>
-                  <p className="text-sm text-gray-900 font-medium">{active.dialect}</p>
+                <div className="detail-card">
+                  <div className="detail-card-label">Діалект</div>
+                  <div className="detail-card-value">{active.dialect}</div>
                 </div>
               )}
-              
               {active.subdialect && (
-                <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-200 detail-info-card">
-                  <p className="text-xs font-semibold text-gray-700 mb-1">НАРІЧЧЯ</p>
-                  <p className="text-sm text-gray-900 font-medium">{active.subdialect}</p>
+                <div className="detail-card">
+                  <div className="detail-card-label">Наріччя</div>
+                  <div className="detail-card-value">{active.subdialect}</div>
                 </div>
               )}
-              
               {active.transcription && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Транскрипція:</p>
-                  <div className="text-sm bg-gray-50 p-4 rounded-xl border-2 border-gray-200 text-scrollable">
-                    {highlight(active.transcription, query)}
-                  </div>
+                <div className="detail-card">
+                  <div className="detail-card-label">Транскрипція</div>
+                  <div className="detail-card-value text-scrollable">{highlight(active.transcription, query)}</div>
                 </div>
               )}
-              
               {active.literary && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Літературний варіант:</p>
-                  <div className="text-sm bg-gray-50 p-4 rounded-xl border-2 border-gray-200 text-scrollable">
-                    {highlight(active.literary, query)}
-                  </div>
+                <div className="detail-card">
+                  <div className="detail-card-label">Літературний варіант</div>
+                  <div className="detail-card-value text-scrollable">{highlight(active.literary, query)}</div>
                 </div>
               )}
             </div>
           )
         });
-        
+
         if (active.informantName || active.informantBirthYear || active.collector || active.recordDate) {
           arr.push({
             title: 'Інформація про запис',
             content: (
-              <div className="space-y-4">
-                {active.informantName && (
-                  <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
-                    <p className="text-xs text-gray-600 mb-2">Інформатор:</p>
-                    <p className="text-sm font-medium text-gray-800">{active.informantName}</p>
-                    {active.informantBirthYear && (
-                      <p className="text-xs text-gray-700 mt-2 font-medium">Рік народження: {active.informantBirthYear}</p>
-                    )}
-                    {active.informantEducation && (
-                      <p className="text-xs text-gray-500 mt-1">Освіта: {active.informantEducation}</p>
-                    )}
+              <div>
+                {(active.informantName || active.informantBirthYear) && (
+                  <div className="detail-card">
+                    <div className="detail-card-label">Інформатор</div>
+                    {active.informantName && <div className="detail-card-value">{active.informantName}</div>}
+                    {active.informantBirthYear && <div style={{fontSize:'0.82rem',color:'var(--gray-mid)',marginTop:'0.3rem'}}>Рік народження: {active.informantBirthYear}</div>}
+                    {active.informantEducation && <div style={{fontSize:'0.82rem',color:'var(--gray-mid)'}}>Освіта: {active.informantEducation}</div>}
                   </div>
                 )}
-                
-                {!active.informantName && active.informantBirthYear && (
-                  <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
-                    <p className="text-xs text-gray-600 mb-2">Інформатор:</p>
-                    <p className="text-xs text-gray-700 font-medium">Рік народження: {active.informantBirthYear}</p>
-                    {active.informantEducation && (
-                      <p className="text-xs text-gray-500 mt-1">Освіта: {active.informantEducation}</p>
-                    )}
-                  </div>
-                )}
-                
                 {active.collector && (
-                  <div className="border-t pt-3">
-                    <p className="text-xs text-gray-600 mb-1">Збирач:</p>
-                    <p className="text-sm text-gray-800">{active.collector}</p>
+                  <div className="detail-card">
+                    <div className="detail-card-label">Збирач</div>
+                    <div className="detail-card-value">{active.collector}</div>
                   </div>
                 )}
-                
                 {active.recordDate && (
-                  <div className="border-t pt-3">
-                    <p className="text-xs text-gray-600 mb-1">Дата запису:</p>
-                    <p className="text-sm text-gray-800">{active.recordDate}</p>
+                  <div className="detail-card">
+                    <div className="detail-card-label">Дата запису</div>
+                    <div className="detail-card-value">{active.recordDate}</div>
                   </div>
                 )}
               </div>
             )
           });
         }
-        
+
         if (active.settlementHistory) {
           arr.push({
             title: 'Історія населеного пункту',
             content: (
-              <div>
-                <p className="text-sm text-gray-800 leading-relaxed">{active.settlementHistory}</p>
+              <div className="detail-card">
+                <div className="detail-card-value" style={{lineHeight:'1.75'}}>{active.settlementHistory}</div>
               </div>
             )
           });
         }
-        
         return arr;
       }, [active, query]);
-      
-      const switchToMap = () => {
-        setView('map');
-        setQuery('');
-        setActive(null);
-      };
-      
-      const switchToHome = () => {
-        setView('home');
-      };
-      
+
       const statistics = useMemo(() => {
-        const reg = new Set(data.map(d => d.region).filter(Boolean));
-        const dial = new Set(data.map(d => d.dialect).filter(Boolean));
-        const sett = new Set(data.map(d => d.settlement).filter(Boolean));
-        const aud = data.filter(d => d.audio).length;
-        
+        const reg  = new Set(data.map(d=>d.region).filter(Boolean));
+        const dial = new Set(data.map(d=>d.dialect).filter(Boolean));
+        const sett = new Set(data.map(d=>d.settlement).filter(Boolean));
+        const aud  = data.filter(d=>d.audio).length;
         return {
           totalRecords: data.length,
           totalRegions: reg.size,
@@ -642,434 +1360,424 @@
           recordsWithAudio: aud
         };
       }, [data]);
-      
+
       return (
         <>
-          <nav className="bg-white shadow-md sticky top-0 z-50">
-            <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <img 
-                  src="https://drive.google.com/uc?export=view&id=1PlAk2F6M3wmR1WSMai7gamheOzxzfzWG"
-                  alt="Логотип"
-                  className="w-12 h-auto"
-                  onError={(e) => e.target.style.display='none'}
-                />
-                <h3 className="text-xl font-bold text-gray-800">Інтерактивна платформа діалектних текстів</h3>
+          {/* ── NAVBAR ── */}
+          <nav className="navbar">
+            <div className="navbar-inner">
+              <div className="navbar-brand">
+                <Logo size={44} />
+                <span className="navbar-title">Інтерактивна платформа діалектних текстів</span>
               </div>
-              {view === 'home' ? (
-                <button onClick={switchToMap} className="nav-button bg-gradient-to-r from-red-900 to-red-800 text-white px-6 py-2.5 rounded-lg font-semibold relative z-10">
-                  Карта
-                </button>
-              ) : (
-                <button onClick={switchToHome} className="nav-button bg-gradient-to-r from-red-900 to-red-800 text-white px-6 py-2.5 rounded-lg font-semibold relative z-10">
-                  Головна
-                </button>
-              )}
+              <button className="nav-btn" onClick={() => { view==='home' ? setView('map') : setView('home'); setQuery(''); setActive(null); }}>
+                <span>{view === 'home' ? 'Карта' : 'Головна'}</span>
+              </button>
             </div>
           </nav>
 
+          {/* ══════════════════════════════════════════
+              HOME PAGE
+          ════════════════════════════════════════════ */}
           {view === 'home' && (
             <div>
-              <section className="hero-section">
-                <div className="floating-letters">
-                  <div className="letter" style={{left: '10%', top: '20%', fontSize: '5rem', animationDelay: '0s'}}>А</div>
-                  <div className="letter" style={{left: '25%', top: '60%', fontSize: '4.5rem', animationDelay: '2s'}}>Б</div>
-                  <div className="letter" style={{left: '70%', top: '30%', fontSize: '5.5rem', animationDelay: '4s'}}>В</div>
-                  <div className="letter" style={{left: '85%', top: '70%', fontSize: '4rem', animationDelay: '6s'}}>Г</div>
-                  <div className="letter" style={{left: '50%', top: '15%', fontSize: '4.8rem', animationDelay: '1s'}}>Ґ</div>
-                  <div className="letter" style={{left: '15%', top: '80%', fontSize: '5rem', animationDelay: '3s'}}>Д</div>
-                  <div className="letter" style={{left: '60%', top: '75%', fontSize: '4.3rem', animationDelay: '5s'}}>Є</div>
-                  <div className="letter" style={{left: '40%', top: '50%', fontSize: '5.2rem', animationDelay: '7s'}}>Ж</div>
+
+              {/* ── HERO ── */}
+              <section className="hero">
+                <div className="hero-lines"></div>
+                <div className="float-letters">
+                  {[['А','10%','22%','6rem','0s','-5deg'],
+                    ['Б','23%','65%','5rem','2s','4deg'],
+                    ['В','72%','28%','7rem','4s','-3deg'],
+                    ['Г','85%','72%','5.5rem','6s','6deg'],
+                    ['Ґ','50%','14%','6rem','1s','-2deg'],
+                    ['Д','14%','82%','5rem','3s','5deg'],
+                    ['Є','62%','78%','5.5rem','5s','-6deg'],
+                    ['Ж','38%','48%','6.5rem','7s','3deg']
+                  ].map(([l,left,top,fs,delay,rot])=>(
+                    <span key={l} className="float-letter" style={{left,top,fontSize:fs,animationDelay:delay,'--rot':rot}}>{l}</span>
+                  ))}
                 </div>
-                
-                <div className="container mx-auto px-6 text-center relative z-10 animate-slide-down">
-                  <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 drop-shadow-lg">
-                    Інтерактивна платформа<br/>діалектних текстів
+
+                <div style={{position:'relative',zIndex:10,textAlign:'center',display:'flex',flexDirection:'column',alignItems:'center',animation:'slideDown 0.9s ease-out'}}>
+                  <OrnamentalSign className="hero-sign" />
+
+                  <div className="hero-eyebrow">
+                    <span></span>
+                    Діалектологічний науковий центр
+                    <span></span>
+                  </div>
+
+                  <h1 className="hero-h1">
+                    Інтерактивна платформа<br/><em>діалектних текстів</em>
                   </h1>
-                  <p className="text-xl text-gray-800 mb-8 max-w-3xl mx-auto leading-relaxed font-medium">
-                    Діалектологічний науковий центр при Вінницькому державному педагогічному університеті імені Михайла Коцюбинського
+
+                  <p className="hero-sub">
+                    Вінницький державний педагогічний університет<br/>імені Михайла Коцюбинського
                   </p>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-12">
-                    <div className="stats-card">
-                      <div className="stats-number">{statistics.totalDialects}</div>
-                      <p className="text-gray-600 font-semibold mt-2">Діалектів</p>
+
+                  {isLoading ? (
+                    <div style={{display:'flex',alignItems:'center',gap:'0.75rem',color:'var(--gold)',opacity:0.7}}>
+                      <svg className="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                      </svg>
+                      Завантаження даних…
                     </div>
-                    <div className="stats-card">
-                      <div className="stats-number">{statistics.totalRegions}</div>
-                      <p className="text-gray-600 font-semibold mt-2">Областей</p>
+                  ) : (
+                    <div className="stats-row">
+                      <div className="stat-cell">
+                        <span className="stat-num">{statistics.totalDialects}</span>
+                        <span className="stat-label">Діалектів</span>
+                      </div>
+                      <div className="stat-cell">
+                        <span className="stat-num">{statistics.totalRegions}</span>
+                        <span className="stat-label">Областей</span>
+                      </div>
+                      <div className="stat-cell">
+                        <span className="stat-num">{statistics.totalSettlements}</span>
+                        <span className="stat-label">Населених пунктів</span>
+                      </div>
+                      <div className="stat-cell">
+                        <span className="stat-num">{statistics.recordsWithAudio}</span>
+                        <span className="stat-label">З аудіо</span>
+                      </div>
                     </div>
-                    <div className="stats-card">
-                      <div className="stats-number">{statistics.totalSettlements}</div>
-                      <p className="text-gray-600 font-semibold mt-2">Населених пунктів</p>
+                  )}
+                </div>
+
+                <div className="scroll-indicator">
+                  <span>Донизу</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12l7 7 7-7"/>
+                  </svg>
+                </div>
+              </section>
+
+              {/* ── QUOTE ── */}
+              <div className="quote-section">
+                <div className="quote-inner">
+                  <div className="quote-photo-wrap">
+                    <div className="quote-photo-border"></div>
+                    <div className="quote-photo-corner tl"></div>
+                    <div className="quote-photo-corner tr"></div>
+                    <div className="quote-photo-corner bl"></div>
+                    <div className="quote-photo-corner br"></div>
+                    <img
+                      src="https://drive.google.com/uc?export=view&id=1PlAk2F6M3wmR1WSMai7gamheOzxzfzWG"
+                      alt="П.Ю. Гриценко"
+                      className="quote-photo"
+                      onError={e => {
+                        e.target.style.display = 'none';
+                        e.target.parentNode.style.width = '0';
+                      }}
+                    />
+                  </div>
+                  <div className="quote-content">
+                    <span className="quote-mark">&ldquo;</span>
+                    <p className="quote-text">
+                      Вивчення подільського діалекту, представлення його структури в контексті інших українських діалектів та інших мов — це одне з невідкладних завдань українського мовознавства, насамперед — мешканців цього краю чи вихідців з Поділля, для кого подільське мовлення є симфонією рідного краю і символом рідних порогів.
+                    </p>
+                    <div className="quote-author">
+                      П. Ю. Гриценко
                     </div>
-                    <div className="stats-card">
-                      <div className="stats-number">{statistics.recordsWithAudio}</div>
-                      <p className="text-gray-600 font-semibold mt-2">З аудіо</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── ПРО ЦЕНТР ── */}
+              <section className="section section-dark">
+                <div className="section-inner">
+                  <div className="sec-heading">
+                    <span className="sec-tag">Науковий осередок</span>
+                    <h2 className="sec-title">Про Центр</h2>
+                    <div className="sec-rule"></div>
+                  </div>
+                  <div style={{display:'grid',gap:'1.5rem',maxWidth:'780px',margin:'0 auto'}}>
+                    <div className="about-card">
+                      <p>
+                        <strong>Діалектологічний науковий центр</strong> створено на базі кафедри української мови Вінницького державного педагогічного університету імені Михайла Коцюбинського. Він узгоджує свою діяльність із відділом діалектології Інституту української мови Національної академії наук України.
+                      </p>
+                    </div>
+                    <div className="about-card">
+                      <p>
+                        <strong>Метою Діалектологічного наукового центру</strong> є системне дослідження говірок Центрального Поділля на фонетичному, лексико-семантичному, граматичному рівнях; етнолінгвістичне вивчення народної духовної та матеріальної культури подолян.
+                      </p>
                     </div>
                   </div>
                 </div>
               </section>
 
-              <section className="py-20 bg-white relative overflow-hidden">
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute top-0 left-0 w-96 h-96 bg-red-900 rounded-full blur-3xl"></div>
-                  <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-800 rounded-full blur-3xl"></div>
-                </div>
-                
-                <div className="container mx-auto px-6 max-w-6xl relative z-10">
-                  <div className="text-center mb-16">
-                    <div className="inline-block">
-                      <h2 className="text-4xl font-bold text-gray-900 mb-3">Про Центр</h2>
-                      <div className="h-1 bg-gradient-to-r from-red-900 to-red-800 rounded-full"></div>
-                    </div>
+              {/* ── ПРО ПЛАТФОРМУ ── */}
+              <section className="section section-mid">
+                <div className="section-inner">
+                  <div className="sec-heading">
+                    <span className="sec-tag">Можливості</span>
+                    <h2 className="sec-title">Про платформу</h2>
+                    <div className="sec-rule"></div>
                   </div>
-                  
-                  <div className="max-w-4xl mx-auto">
-                    <div className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-10 shadow-2xl border border-gray-100">
-                      <div className="space-y-8">
-                        <div className="relative pl-8 border-l-4 border-red-900">
-                          <p className="text-lg text-gray-800 leading-relaxed">
-                            <span className="font-bold text-red-900 text-xl">Діалектологічний науковий центр</span> створено на базі кафедри української мови Вінницького державного педагогічного університету імені Михайла Коцюбинського. Він узгоджує свою діяльність із відділом діалектології Інституту української мови Національної академії наук України.
-                          </p>
-                        </div>
-                        
-                        <div className="relative pl-8 border-l-4 border-red-800">
-                          <p className="text-lg text-gray-800 leading-relaxed">
-                            <span className="font-bold text-red-900 text-xl">Метою Діалектологічного наукового центру</span> є системне дослідження говірок Центрального Поділля на фонетичному, лексико-семантичному, граматичному рівнях; етнолінгвістичне вивчення народної духовної та матеріальної культури подолян.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative">
-                <div className="container mx-auto px-6 max-w-7xl">
-                  <div className="text-center mb-16">
-                    <div className="inline-block">
-                      <h2 className="text-4xl font-bold text-gray-900 mb-3">Про платформу</h2>
-                      <div className="h-1 bg-gradient-to-r from-red-900 to-red-800 rounded-full"></div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-red-900">
-                      <div className="flex items-start gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-red-900 to-red-800 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  <div className="feat-grid">
+                    {[
+                      {
+                        icon: (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                           </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Інтерактивна карта</h3>
-                          <p className="text-gray-700 leading-relaxed">
-                            Досліджуйте діалектні особливості різних регіонів України через інтерактивну карту. Кожна точка на мапі містить автентичні записи говірок із детальною транскрипцією та аудіосупроводом.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-red-900">
-                      <div className="flex items-start gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-red-900 to-red-800 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        ),
+                        title: 'Інтерактивна карта',
+                        text: 'Досліджуйте діалектні особливості різних регіонів України через інтерактивну карту. Кожна точка на мапі містить автентичні записи говірок із детальною транскрипцією та аудіосупроводом.'
+                      },
+                      {
+                        icon: (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
                           </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Пошук за словоформами</h3>
-                          <p className="text-gray-700 leading-relaxed">
-                            Потужна система пошуку дозволяє знаходити діалектні варіанти слів у різних регіонах. Введіть будь-яку словоформу і отримайте всі записи, де вона зустрічається.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-red-900">
-                      <div className="flex items-start gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-red-900 to-red-800 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        ),
+                        title: 'Пошук за словоформами',
+                        text: 'Потужна система пошуку дозволяє знаходити діалектні варіанти слів у різних регіонах. Введіть будь-яку словоформу і отримайте всі записи, де вона зустрічається.'
+                      },
+                      {
+                        icon: (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
                           </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Аудіоматеріали</h3>
-                          <p className="text-gray-700 leading-relaxed">
-                            Слухайте автентичне звучання говірок у виконанні носіїв діалектів. Кожен запис супроводжується детальною інформацією про інформатора та місце запису.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-red-900">
-                      <div className="flex items-start gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-red-900 to-red-800 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        ),
+                        title: 'Аудіоматеріали',
+                        text: 'Слухайте автентичне звучання говірок у виконанні носіїв діалектів. Кожен запис супроводжується детальною інформацією про інформатора та місце запису.'
+                      },
+                      {
+                        icon: (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                           </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Наукова база</h3>
-                          <p className="text-gray-700 leading-relaxed">
-                            Всі матеріали зібрані та систематизовані науковцями центру та студентами-філологами. База постійно поповнюється новими записами діалектних текстів не лише Центрального Поділля, а й усіх регіонів України.
-                          </p>
+                        ),
+                        title: 'Наукова база',
+                        text: 'Всі матеріали зібрані та систематизовані науковцями центру та студентами-філологами. База постійно поповнюється новими записами діалектних текстів.'
+                      }
+                    ].map(f => (
+                      <div key={f.title} className="feat-cell">
+                        <div className="feat-icon">{f.icon}</div>
+                        <div className="feat-text">
+                          <h3>{f.title}</h3>
+                          <p>{f.text}</p>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </section>
 
-              <section className="py-20 bg-white">
-                <div className="container mx-auto px-6 max-w-6xl">
-                  <div className="text-center mb-16">
-                    <div className="inline-block">
-                      <h2 className="text-4xl font-bold text-gray-900 mb-3">Інформація для користувачів</h2>
-                      <div className="h-1 bg-gradient-to-r from-red-900 to-red-800 rounded-full"></div>
-                    </div>
+              {/* ── USER INFO ── */}
+              <section className="section section-dark">
+                <div className="section-inner">
+                  <div className="sec-heading">
+                    <span className="sec-tag">Довідка</span>
+                    <h2 className="sec-title">Інформація для користувачів</h2>
+                    <div className="sec-rule"></div>
                   </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-8 mb-8">
-                    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 shadow-xl border-l-4 border-red-900">
-                      <h3 className="text-2xl font-bold text-red-900 mb-6 flex items-center gap-3">
-                        <span className="w-10 h-10 bg-red-900 text-white rounded-lg flex items-center justify-center text-lg">!</span>
+
+                  <div className="info-grid">
+                    <div className="info-card">
+                      <h3>
+                        <span style={{color:'var(--gold)',fontFamily:'Jost,sans-serif',fontSize:'1.2rem'}}>!</span>
                         Як користуватися платформою
                       </h3>
-                      <div className="space-y-4">
-                        <div className="flex gap-4">
-                          <span className="w-8 h-8 bg-red-100 text-red-900 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</span>
-                          <p className="text-gray-700 leading-relaxed pt-1"><strong>Перейдіть до розділу "Карта"</strong> через кнопку в верхньому правому куті</p>
+                      {[
+                        ['1', 'Перейдіть до розділу "Карта" через кнопку в верхньому правому куті'],
+                        ['2', 'Введіть словоформу у пошукове поле'],
+                        ['3', 'Оберіть запис зі списку результатів пошуку'],
+                        ['4', 'Переглядайте детальну інформацію про діалектний варіант, населений пункт та інформатора'],
+                        ['5', 'Прослуховуйте аудіо, якщо воно доступне для обраного запису'],
+                      ].map(([n, t]) => (
+                        <div key={n} className="info-step">
+                          <span className="info-num">{n}</span>
+                          <p>{t}</p>
                         </div>
-                        <div className="flex gap-4">
-                          <span className="w-8 h-8 bg-red-100 text-red-900 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</span>
-                          <p className="text-gray-700 leading-relaxed pt-1"><strong>Введіть словоформу</strong> у пошукове поле</p>
-                        </div>
-                        <div className="flex gap-4">
-                          <span className="w-8 h-8 bg-red-100 text-red-900 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</span>
-                          <p className="text-gray-700 leading-relaxed pt-1"><strong>Оберіть запис</strong> зі списку результатів пошуку</p>
-                        </div>
-                        <div className="flex gap-4">
-                          <span className="w-8 h-8 bg-red-100 text-red-900 rounded-full flex items-center justify-center font-bold flex-shrink-0">4</span>
-                          <p className="text-gray-700 leading-relaxed pt-1"><strong>Переглядайте детальну інформацію</strong> про діалектний варіант, населений пункт та інформатора</p>
-                        </div>
-                        <div className="flex gap-4">
-                          <span className="w-8 h-8 bg-red-100 text-red-900 rounded-full flex items-center justify-center font-bold flex-shrink-0">5</span>
-                          <p className="text-gray-700 leading-relaxed pt-1"><strong>Прослуховуйте аудіо</strong>, якщо воно доступне для обраного запису</p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                    
-                    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 shadow-xl border-l-4 border-red-800">
-                      <h3 className="text-2xl font-bold text-red-900 mb-6 flex items-center gap-3">
-                        <span className="w-10 h-10 bg-red-900 text-white rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                          </svg>
-                        </span>
+
+                    <div className="info-card">
+                      <h3>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{color:'var(--gold)'}}>
+                          <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
                         Поради щодо пошуку
                       </h3>
-                      <div className="space-y-4">
-                        <div className="flex gap-3">
-                          <div className="w-2 h-2 bg-red-900 rounded-full mt-2 flex-shrink-0"></div>
-                          <p className="text-gray-700 leading-relaxed">Використовуйте прості словоформи для отримання найточніших результатів</p>
+                      {[
+                        'Використовуйте прості словоформи для отримання найточніших результатів',
+                        'Пошук працює за літературним варіантом',
+                        'Для розширення результатів спробуйте різні форми одного слова',
+                        'Звертайте увагу на географічні маркери на карті для розуміння поширення діалектних варіантів',
+                      ].map((t, i) => (
+                        <div key={i} className="info-bullet">
+                          <span className="info-dot"></span>
+                          <p>{t}</p>
                         </div>
-                        <div className="flex gap-3">
-                          <div className="w-2 h-2 bg-red-900 rounded-full mt-2 flex-shrink-0"></div>
-                          <p className="text-gray-700 leading-relaxed">Пошук працює за літературним варіантом</p>
-                        </div>
-                        <div className="flex gap-3">
-                          <div className="w-2 h-2 bg-red-900 rounded-full mt-2 flex-shrink-0"></div>
-                          <p className="text-gray-700 leading-relaxed">Для розширення результатів спробуйте різні форми одного слова</p>
-                        </div>
-                        <div className="flex gap-3">
-                          <div className="w-2 h-2 bg-red-900 rounded-full mt-2 flex-shrink-0"></div>
-                          <p className="text-gray-700 leading-relaxed">Звертайте увагу на географічні маркери на карті для розуміння поширення діалектних варіантів</p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-10 shadow-2xl text-white">
-                    <div className="flex items-start gap-6">
-                      <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-3xl font-bold mb-4">Для дослідників</h3>
-                        <p className="text-gray-200 leading-relaxed text-lg mb-6">
-                          Платформа призначена для широкого кола користувачів: студентів-філологів, науковців, викладачів, усіх, хто цікавиться українською діалектологією та регіональними особливостями мови. Матеріали можуть використовуватися для написання наукових робіт, підготовки до занять або просто для особистого збагачення знань про рідну мову.
-                        </p>
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                          <p className="text-gray-100 leading-relaxed">
-                            <strong className="text-white text-lg">Важливо:</strong> При використанні матеріалів платформи посилання на сайт є обов'язковим.
-                          </p>
-                        </div>
+                  <div className="researchers-block">
+                    <div className="researchers-icon">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                      </svg>
+                    </div>
+                    <div style={{flex:1}}>
+                      <h3>Для дослідників</h3>
+                      <p>
+                        Платформа призначена для широкого кола користувачів: студентів-філологів, науковців, викладачів, усіх, хто цікавиться українською діалектологією та регіональними особливостями мови. Матеріали можуть використовуватися для написання наукових робіт, підготовки до занять або просто для особистого збагачення знань про рідну мову.
+                      </p>
+                      <div className="important-note">
+                        <p><strong>Важливо:</strong> При використанні матеріалів платформи посилання на сайт є обов'язковим.</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </section>
 
-              <footer className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 py-10 border-t-4 border-red-900">
-                <div className="container mx-auto px-6">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src="https://drive.google.com/uc?export=view&id=1PlAk2F6M3wmR1WSMai7gamheOzxzfzWG"
-                        alt="Логотип Діалектологічного центру"
-                        className="w-16 h-auto"
-                        onError={(e) => e.target.style.display='none'}
-                      />
-                      <div className="text-sm">
-                        <p className="font-semibold mb-2 text-red-900 text-base">Контакти:</p>
-                        <p className="text-gray-600">E-mail: <a href="mailto:dialect.research.center.vspu@gmail.com" className="hover:text-red-700 underline transition">dialect.research.center.vspu@gmail.com</a></p>
-                        <p className="text-gray-600 mt-1">21100, Вінниця, вул. Острозького, 32, корпус 1, к. №303</p>
-                      </div>
+              {/* ── FOOTER ── */}
+              <footer className="footer">
+                <div className="footer-inner">
+                  <div className="footer-brand">
+                    <Logo size={52} />
+                    <div className="footer-contact">
+                      <p style={{color:'var(--gold)',fontFamily:'Cormorant Garamond,serif',fontSize:'0.95rem',marginBottom:'0.5rem'}}>Контакти</p>
+                      <p>E-mail: <a href="mailto:dialect.research.center.vspu@gmail.com">dialect.research.center.vspu@gmail.com</a></p>
+                      <p>21100, Вінниця, вул. Острозького, 32, корпус 1, к. №303</p>
                     </div>
-                    
-                    <div className="text-sm text-gray-600 text-center md:text-right max-w-md">
-                      <p className="mb-2 font-semibold text-base">© 2025. Діалектологічний науковий центр при ВДПУ імені Михайла Коцюбинського</p>
-                      <p className="text-xs text-gray-700 mt-3">Керівник: <span className="font-medium">Інна Гороф'янюк</span></p>
-                      <p className="text-xs text-gray-700">Служба підтримки: <span className="font-medium">Поліна Дузенко</span></p>
-                      <p className="text-xs text-gray-500 mt-3">При використанні матеріалів посилання на сайт є обов'язковим</p>
+                  </div>
+
+                  <div className="footer-info">
+                    <div className="bottom-orn">
+                      <OrnamentalSign style={{width:28,height:28,opacity:0.6}}/>
                     </div>
+                    <p className="footer-copy">© 2025. Діалектологічний науковий центр при ВДПУ імені Михайла Коцюбинського</p>
+                    <p>Керівник: <span className="footer-gold">Інна Гороф'янюк</span></p>
+                    <p>Служба підтримки: <span className="footer-gold">Поліна Дузенко</span></p>
+                    <p style={{marginTop:'0.5rem',fontSize:'0.75rem',opacity:0.5}}>При використанні матеріалів посилання на сайт є обов'язковим</p>
                   </div>
                 </div>
               </footer>
+
             </div>
           )}
 
+          {/* ══════════════════════════════════════════
+              MAP PAGE
+          ════════════════════════════════════════════ */}
           {view === 'map' && (
-            <div className="flex flex-col" style={{height: 'calc(100vh - 73px)'}}>
-              <div className="glass-effect shadow-xl p-3 border-b sticky top-0 z-20">
-                <div className="container mx-auto max-w-4xl">
-                  <div className="flex gap-3">
-                    <div className="flex-1 relative">
+            <div style={{display:'flex',flexDirection:'column',height:'calc(100vh - 72px)'}}>
+
+              {/* Search bar */}
+              <div className="glass-effect" style={{padding:'0.75rem 1.5rem',zIndex:20,position:'sticky',top:'72px'}}>
+                <div style={{maxWidth:960,margin:'0 auto'}}>
+                  <div style={{display:'flex',gap:'0.75rem',marginBottom:'0.6rem'}}>
+                    <div style={{flex:1,position:'relative'}}>
                       <input
                         type="text"
-                        placeholder="Пошук"
+                        placeholder="Пошук словоформи…"
                         value={query}
                         onChange={e => setQuery(e.target.value)}
-                        className="w-full px-5 py-2.5 border-2 border-gray-200 rounded-xl focus:border-red-800 outline-none search-input transition-all text-base"
+                        className="map-search-input"
                       />
                       {query && (
                         <button
                           onClick={() => setQuery('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                        >
-                          ✕
-                        </button>
+                          style={{position:'absolute',right:'0.75rem',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'var(--gray-mid)',cursor:'pointer',fontSize:'1rem'}}
+                        >✕</button>
                       )}
                     </div>
-                    <button
-                      onClick={fetchData}
-                      className="px-5 py-2.5 bg-gradient-to-r from-red-900 to-red-800 text-white rounded-xl hover:shadow-lg transition-all font-medium hover:scale-105"
-                    >
-                      Оновити
-                    </button>
+                    <button onClick={fetchData} className="map-btn">Оновити</button>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 mt-3">
+
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.6rem'}}>
                     <select
                       value={filterReg}
-                      onChange={e => {
-                        setFilterReg(e.target.value);
-                        setFilterDist('');
-                      }}
-                      className="px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-red-800 outline-none transition-all text-base bg-white"
+                      onChange={e => { setFilterReg(e.target.value); setFilterDist(''); }}
+                      className="map-select"
                     >
                       <option value="">Всі області</option>
-                      {regions.map(r => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
+                      {regions.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
-                    
                     <select
                       value={filterDist}
                       onChange={e => setFilterDist(e.target.value)}
-                      className="px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-red-800 outline-none transition-all text-base bg-white"
+                      className="map-select"
                       disabled={!filterReg && districts.length === 0}
                     >
                       <option value="">Всі райони</option>
-                      {districts.map(d => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
+                      {districts.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
-                  
+
                   {err && (
-                    <div className="mt-2 p-3 bg-white border-l-4 border-red-900 text-red-900 rounded-lg text-sm animate-fade-in">
-                      <span className="font-semibold">Помилка:</span> {err}
-                      <button onClick={fetchData} className="ml-3 underline hover:no-underline">Спробувати знову</button>
+                    <div className="error-banner animate-fade-in">
+                      <strong>Помилка:</strong> {err}
+                      <button onClick={fetchData} style={{marginLeft:'0.75rem',textDecoration:'underline',background:'none',border:'none',color:'var(--cream-dark)',cursor:'pointer',fontSize:'0.85rem'}}>Спробувати знову</button>
                     </div>
                   )}
-                  
+
                   {!isLoading && (query || filterReg || filterDist) && (
-                    <div className="mt-2 text-sm text-gray-600 animate-fade-in flex items-center gap-2 stat-badge">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-red-800 text-white rounded-full text-xs font-bold">
-                        {results.length}
-                      </span>
-                      <span>Знайдено записів з <span className="font-semibold text-red-900">{data.length}</span> доступних</span>
-                    </div>
-                  )}
-                  
-                  {!isLoading && !query && !filterReg && !filterDist && (
-                    <div className="mt-2 text-sm text-gray-500 animate-fade-in flex items-center gap-2">
-                      <span>Введіть словоформу або оберіть область/район для пошуку діалектних записів</span>
+                    <div className="stat-badge animate-fade-in" style={{marginTop:'0.4rem'}}>
+                      <span className="stat-badge-num">{results.length}</span>
+                      Знайдено записів з <strong style={{color:'var(--gold)',margin:'0 0.25rem'}}>{data.length}</strong> доступних
                     </div>
                   )}
                 </div>
               </div>
-              
-              <div className="flex-1 flex overflow-hidden">
-                <div className={`relative bg-gray-50 map-container-small ${active ? 'w-2/5' : 'flex-1'}`}>
-                  {isLoading ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
-                      <div className="text-center">
-                        <div className="w-12 h-12 border-4 border-red-900 border-t-transparent rounded-full mx-auto mb-3 spinner" />
-                        <p className="text-gray-600">Завантаження...</p>
+
+              {/* Map + sidebar */}
+              <div style={{flex:1,display:'flex',overflow:'hidden'}}>
+
+                {/* Map */}
+                <div className="map-container" style={{position:'relative',flex: active ? '0 0 32%' : 1, background:'#3A0D14'}}>
+                  {isLoading && (
+                    <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(58,13,20,0.85)',zIndex:10}}>
+                      <div style={{textAlign:'center',color:'var(--cream)'}}>
+                        <svg className="spinner" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" style={{display:'block',margin:'0 auto 0.75rem'}}>
+                          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                        Завантаження…
                       </div>
                     </div>
-                  ) : null}
+                  )}
                   <div ref={mapEl} id="map"></div>
                 </div>
-                
-                <div className="w-80 bg-white shadow-xl overflow-y-auto border-l">
+
+                {/* Results list */}
+                <div className="sidebar">
                   {isLoading ? (
-                    <div className="p-8 text-center">
-                      <div className="w-10 h-10 border-4 border-red-900 border-t-transparent rounded-full mx-auto mb-3 spinner" />
-                      <p className="text-sm text-gray-600">Завантаження...</p>
+                    <div style={{padding:'2rem',textAlign:'center',color:'var(--gray-mid)'}}>
+                      <svg className="spinner" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" style={{display:'block',margin:'0 auto 0.75rem'}}>
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                      </svg>
+                      Завантаження…
                     </div>
                   ) : !query && !filterReg && !filterDist ? (
-                    <div className="p-8 text-center text-gray-500">
-                      <p className="mb-2 font-medium">Введіть словоформу або оберіть фільтри</p>
+                    <div style={{padding:'2.5rem 1.5rem',textAlign:'center',color:'var(--gray-mid)'}}>
+                      <OrnamentalSign style={{width:64,height:64,opacity:0.3,display:'block',margin:'0 auto 1rem'}}/>
+                      <p style={{fontSize:'0.9rem',lineHeight:1.7}}>Введіть словоформу або оберіть область/район для пошуку діалектних записів</p>
                     </div>
                   ) : results.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
+                    <div style={{padding:'2rem',textAlign:'center',color:'var(--gray-mid)'}}>
                       <p>Нічого не знайдено</p>
                     </div>
                   ) : (
-                    <div className="divide-y">
+                    <div>
                       {results.map(rec => (
                         <div
                           key={rec.id}
-                          onClick={() => {
-                            setActive(rec);
-                            setSlideIdx(0);
-                          }}
-                          className={`p-4 cursor-pointer hover:bg-gray-50 transition card-hover ${
-                            active?.id === rec.id ? 'bg-gray-100 border-l-4 border-red-900 selected-card' : ''
-                          }`}
+                          onClick={() => { setActive(rec); setSlide(0); }}
+                          className={`result-item ${active?.id === rec.id ? 'active' : ''}`}
                         >
-                          <h3 className="font-semibold text-gray-900 font-display">{rec.settlement}</h3>
-                          <p className="text-xs text-gray-500">{rec.region}</p>
-                          {rec.literary && (
-                            <p className="text-xs mt-2 line-clamp-2">
-                              <span className="font-medium text-red-900">Літературний варіант:</span> {highlight(rec.literary, query)}
+                          <h3>{rec.settlement}</h3>
+                          <p>{rec.region}</p>
+                          {rec.district && rec.region !== rec.district && (
+                            <p style={{fontSize:'0.75rem',color:'var(--gray-mid)',margin:'0.1rem 0 0'}}>{rec.district}</p>
+                          )}
+                          {rec.literary && query.trim() && (
+                            <p style={{marginTop:'0.4rem',fontSize:'0.78rem',color:'var(--cream-dark)'}}>
+                              <span style={{color:'var(--gold)'}}>Літ.:</span> {highlight(rec.literary, query)}
                             </p>
                           )}
                         </div>
@@ -1077,59 +1785,34 @@
                     </div>
                   )}
                 </div>
-                
+
+                {/* Detail panel */}
                 {active && (
-                  <div className="bg-white shadow-xl overflow-y-auto border-l animate-slide-in flex-1 detail-panel-expanded">
-                    <div className="sticky top-0 bg-gradient-to-r from-red-900 to-red-800 text-white p-4 flex justify-between items-center z-10 shadow-lg">
-                      <h2 className="font-bold text-lg font-display">Детальна інформація</h2>
-                      <button onClick={() => setActive(null)} className="text-xl hover:text-gray-200 transition hover:rotate-90 duration-300">✕</button>
+                  <div className="detail-panel animate-slide-in">
+                    <div className="detail-header">
+                      <h2>Детальна інформація</h2>
+                      <button className="detail-close" onClick={() => setActive(null)}>✕</button>
                     </div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <button
-                          onClick={() => setSlideIdx(Math.max(0, slideIdx - 1))}
-                          disabled={slideIdx === 0}
-                          className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                        >
-                          ◀
-                        </button>
-                        
-                        <h3 className="text-sm font-semibold text-red-900 text-center flex-1">
-                          {slides[slideIdx]?.title}
-                        </h3>
-                        
-                        <button
-                          onClick={() => setSlideIdx(Math.min(slides.length - 1, slideIdx + 1))}
-                          disabled={slideIdx === slides.length - 1}
-                          className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                        >
-                          ▶
-                        </button>
+                    <div className="detail-body">
+                      <div className="carousel-nav">
+                        <button className="carousel-btn" onClick={() => setSlide(Math.max(0, slideIdx-1))} disabled={slideIdx===0}>◀</button>
+                        <div className="carousel-title">{slides[slideIdx]?.title}</div>
+                        <button className="carousel-btn" onClick={() => setSlide(Math.min(slides.length-1, slideIdx+1))} disabled={slideIdx===slides.length-1}>▶</button>
                       </div>
-                      
-                      <div className="min-h-[400px]">
-                        {slides[slideIdx]?.content}
-                      </div>
-                      
+
+                      <div style={{minHeight:350}}>{slides[slideIdx]?.content}</div>
+
                       {slides.length > 1 && (
                         <div className="carousel-dots">
-                          {slides.map((_, i) => (
-                            <div
-                              key={i}
-                              onClick={() => setSlideIdx(i)}
-                              className={`carousel-dot ${i === slideIdx ? 'active' : ''}`}
-                            />
+                          {slides.map((_,i) => (
+                            <div key={i} onClick={()=>setSlide(i)} className={`carousel-dot ${i===slideIdx?'active':''}`}/>
                           ))}
                         </div>
                       )}
-                      
+
                       {active.audio && (
-                        <button
-                          onClick={() => window.open(active.audio, '_blank')}
-                          className="w-full mt-6 bg-gradient-to-r from-red-900 to-red-800 text-white py-3 rounded-xl hover:shadow-xl transition-all font-medium hover:scale-105 audio-button relative"
-                        >
-                          <span className="relative z-10">Прослухати аудіо</span>
+                        <button onClick={() => window.open(active.audio,'_blank')} className="audio-btn">
+                          ▶ Прослухати аудіо
                         </button>
                       )}
                     </div>
@@ -1141,7 +1824,7 @@
         </>
       );
     }
-    
+
     ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
